@@ -9,9 +9,9 @@ world = []
 should_add = True
 
 # Quadrant for now
-xlen = 8
-ylen = 8
-maxlen = 8 
+xlen = 16
+ylen = 16
+maxlen = 16 
 
 percentAdded = 0
 distance_check = 5 
@@ -322,7 +322,8 @@ def gravity_swap():
     #print()
     #print_world()
 
-def stabelize_world():
+def reverse_gravity(x,y):
+
     global current_gravity
     global world
 
@@ -330,6 +331,34 @@ def stabelize_world():
     GRAVITY_90 = 1
     GRAVITY_180 = 2
     GRAVITY_240 = 3
+
+    if current_gravity == GRAVITY_90:
+        newypos = maxlen-1-x
+        newxpos = y
+        return (newxpos, newypos)
+    elif current_gravity == GRAVITY_240:
+        #print("90 clockwise")
+
+        # 90 grader clockwise:
+
+        newypos = x
+        newxpos = maxlen-1-y
+
+        return (newxpos, newypos)
+    elif current_gravity == GRAVITY_180:
+
+        newypos = maxlen-1-x 
+        newxpos = maxlen-1-y 
+
+        return (newxpos, newypos)
+    else:
+        return (x,y)
+
+
+
+def stabelize_world():
+    global current_gravity
+    global world
 
 
     newworld = []
@@ -341,65 +370,21 @@ def stabelize_world():
         newworld.append(janus)
 
 
-    if current_gravity == GRAVITY_90:
-        #print("90 counter-clockwise")
+    for ypos in range(len(world)):
+        for xpos in range(len(world[ypos])):
+            (newxpos, newypos) = reverse_gravity(xpos, ypos)
 
-        # 90 grader counter:
-        for ypos in range(len(world)):
-            for xpos in range(len(world[ypos])):
-                newypos = maxlen-1-xpos
-                newxpos = ypos
+            newworld[newypos][newxpos] = world[ypos][xpos]
 
-                newworld[newypos][newxpos] = world[ypos][xpos]
+            if not newworld[newypos][newxpos]:
+                continue
 
-                if not newworld[newypos][newxpos]:
-                    continue
+            newworld[newypos][newxpos]["x"] = newxpos
+            newworld[newypos][newxpos]["y"] = newypos
 
-                newworld[newypos][newxpos]["x"] = newxpos
-                newworld[newypos][newxpos]["y"] = newypos
-
-                newworld[newypos][newxpos]["source_loc"] = " "
-                newworld[newypos][newxpos]["dest_loc"] = " "
-        return newworld
-    elif current_gravity == GRAVITY_240:
-        #print("90 clockwise")
-
-        # 90 grader clockwise:
-        for ypos in range(len(world)):
-            for xpos in range(len(world[ypos])):
-                newypos = xpos
-                newxpos = maxlen-1-ypos
-
-                newworld[newypos][newxpos] = world[ypos][xpos]
-
-                if not newworld[newypos][newxpos]:
-                    continue
-
-                newworld[newypos][newxpos]["x"] = newxpos
-                newworld[newypos][newxpos]["y"] = newypos
-
-                newworld[newypos][newxpos]["source_loc"] = " "
-                newworld[newypos][newxpos]["dest_loc"] = " "
-        return newworld
-    elif current_gravity == GRAVITY_180:
-        for ypos in range(len(world)):
-            for xpos in range(len(world[ypos])):
-                newypos = maxlen-1-ypos 
-                newxpos = maxlen-1-xpos 
-
-                newworld[newypos][newxpos] = world[ypos][xpos]
-
-                if not newworld[newypos][newxpos]:
-                    continue
-
-                newworld[newypos][newxpos]["x"] = newxpos
-                newworld[newypos][newxpos]["y"] = newypos
-
-                newworld[newypos][newxpos]["source_loc"] = " "
-                newworld[newypos][newxpos]["dest_loc"] = " "
-        return newworld
-    else:
-        return world
+            newworld[newypos][newxpos]["source_loc"] = " "
+            newworld[newypos][newxpos]["dest_loc"] = " "
+    return newworld
 
 
 def stepper(maxlen):
