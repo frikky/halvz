@@ -342,7 +342,9 @@ def stabelize_world():
 
 
     if current_gravity == GRAVITY_90:
-                # 90 grader counter:
+        #print("90 counter-clockwise")
+
+        # 90 grader counter:
         for ypos in range(len(world)):
             for xpos in range(len(world[ypos])):
                 newypos = maxlen-1-xpos
@@ -360,7 +362,9 @@ def stabelize_world():
                 newworld[newypos][newxpos]["dest_loc"] = " "
         return newworld
     elif current_gravity == GRAVITY_240:
-                # 90 grader counter:
+        #print("90 clockwise")
+
+        # 90 grader clockwise:
         for ypos in range(len(world)):
             for xpos in range(len(world[ypos])):
                 newypos = xpos
@@ -412,7 +416,7 @@ def stepper(maxlen):
     if added >= maxadded:
         gravity_swap()
         #exit()
-        return None
+        return stabelize_world() 
 
     #should_add = False 
     ypos = 0
