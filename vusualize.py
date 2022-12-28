@@ -153,20 +153,24 @@ while True:
 
     world = start.print_world()
     for item in objects:
-        if item.object["uuid"] == pixel["uuid"]:
-            item.move_down(pixel)
-            found = item
-            break
+        for line in world:
+            for pixel in line:
+                if not pixel:
+                    continue
 
-    for line in world:
-        for pixel in line:
-            found = None 
-            if not pixel: 
-                continue
+                if item.object["uuid"] == pixel["uuid"]:
+                    item.move_down(pixel)
+                    found = item
+                    break
+
+                    found = None 
+                    if not pixel: 
+                        continue
 
 
-            if not found: 
-                print("NOT FOUND: %s" % pixel)
+                    if not found: 
+                        print("NOT FOUND: %s" % pixel)
+
 
         #self.object = input_object
 

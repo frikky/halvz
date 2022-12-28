@@ -47,6 +47,7 @@ def rewrite_pixel(value):
 def print_world():
     #for i in range(maxlen*maxlen):
     #    sys.stdout.write(f"\b \b")
+    return world
 
     for line in world:
         for pixel in line:
@@ -295,7 +296,7 @@ def stepper(maxlen):
     #if should_add == False:
     added = gravitypls()
     maxadded = int(maxlen*maxlen*0.8)
-    print("Amount: %d/%d (%d), Score: %d, Gravity Swaps: %d, Iter: %d" % (added, maxadded, maxlen*maxlen, score, gravity_swaps, iterations))
+    #print("Amount: %d/%d (%d), Score: %d, Gravity Swaps: %d, Iter: %d" % (added, maxadded, maxlen*maxlen, score, gravity_swaps, iterations))
 
     if added >= maxadded:
         gravity_swap()
