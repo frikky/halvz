@@ -15,22 +15,25 @@ mixer.init()
 #mixer.music.set_volume(0.2)
 #mixer.music.play()
 
-crash_sound = pygame.mixer.Sound("explode.ogg")
+explode_sound = pygame.mixer.Sound("explode.ogg")
+grav_swap = pygame.mixer.Sound("grav_swap_1.ogg")
+orang = pygame.image.load("imgs/orang.png")
+grn = pygame.image.load("imgs/grn.png")
 pygame.font.init() # you have to call this at the start,
 
 my_font = pygame.font.SysFont('Comic Sans MS', 50)
 
 vec = pygame.math.Vector2  # 2 for two dimensional
  
-HEIGHT = 1000 
-WIDTH = 1000 
-INNRHEIGHT = 600 
-INNRWIDTH = 600 
+HEIGHT = 1500 
+WIDTH = 1500
+INNRHEIGHT = 800
+INNRWIDTH = 800 
 maxlen = start.maxlen
 
 ACC = 0.5
 FRIC = -0.12
-FPS = 25 
+FPS = 60 
  
 FramePerSec = pygame.time.Clock()
 
@@ -39,6 +42,13 @@ boxsize = 50
 displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
 bg_img = pygame.image.load('imgs/background.png')
 bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+#pygame.draw.rect(work_img, (255,0, 0, opacity),  (0,0, 640,480))
+
+dark = pygame.Surface((bg_img.get_width(), bg_img.get_height()), flags=pygame.SRCALPHA)
+dark.fill((50, 50, 50, 0))
+bg_img.blit(dark, (0, 0), special_flags=pygame.BLEND_RGBA_SUB)
+#will subtract 50 from the RGB values of the surface called image.
+
 
 pygame.display.set_caption("Halvz")
 basepos = WIDTH-INNRWIDTH/2 
@@ -51,20 +61,35 @@ class Block(pygame.sprite.Sprite):
     # Constructor. Pass in the color of the block,
     # and its x and y position
     def __init__(self, input_object):
+        global orang
+        global grn 
        # Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)
 
        # Create an image of the block, and fill it with a color.
        # This could also be an image loaded from the disk.
-        self.surf = pygame.Surface((INNRWIDTH/maxlen-1, INNRWIDTH/maxlen-1))
+        size = int(INNRWIDTH/maxlen-1), int(INNRWIDTH/maxlen-1)
+        self.surf = pygame.Surface(size)
+        self.surf = self.surf.convert()
+
         # self.surf.fill(color)
 
         if input_object["flag"] == 1:
             self.surf.fill((187,37,40))
+            
+            charRect = pygame.Rect((0,0),(10, 10))
+            orang = pygame.transform.scale(orang, size)
+            self.surf.blit(orang, charRect)
+            
         elif input_object["flag"] == 2:
             self.surf.fill((20,107,58))
+
+            charRect = pygame.Rect((0,0),(10, 10))
+            grn = pygame.transform.scale(grn, size)
+            self.surf.blit(grn, charRect)
+
         else: 
-            self.surf.fill((0,255,0))
+            self.surf.fill((255,255,255))
 
        # Fetch the rectangle object that has the dimensions of the surf
        # Update the position of this object by setting the values of rect.x and rect.y
@@ -76,6 +101,9 @@ class Block(pygame.sprite.Sprite):
         self.object = input_object.copy()
 
     def explode(self, y, x):
+        global orang
+        global grn 
+
         exp = images = [
             pygame.image.load("imgs/xp1.png"),
             pygame.image.load("imgs/xp2.png"),
@@ -85,12 +113,11 @@ class Block(pygame.sprite.Sprite):
             pygame.image.load("imgs/xp6.png"),
         ]
 
-        mixer.Sound.play(crash_sound)
         rect = self.rect
         
         xstart = WIDTH-int(basepos)+(INNRWIDTH/maxlen*x-60)
         ystart = WIDTH-int(basepos)+(INNRWIDTH/maxlen*y-60)
-        #print("Rect: x: %s, y: %s" % (xstart, ystart))
+
         for item in exp:
             item = pygame.transform.scale(item, (int(INNRWIDTH/maxlen-1), int(INNRWIDTH/maxlen-1)))
             # 1000 = good
@@ -99,6 +126,12 @@ class Block(pygame.sprite.Sprite):
 
 
             pygame.display.update()
+
+
+        #charRect = pygame.Rect((0,0),(10, 10))
+        #size = int((INNRWIDTH/maxlen-1)/2), int((INNRWIDTH/maxlen-1)/2)
+        #orang = pygame.transform.scale(orang, size)
+        #self.surf.blit(orang, charRect)
 
 class platform(pygame.sprite.Sprite):
     def __init__(self):
@@ -116,7 +149,6 @@ all_sprites.add(PT1)
 #new_object = start.stepper(maxlen)
 #P1 = Box({})
 #all_sprites.add(P1)
-#    
 
 old_gravity = 0
 objects = []
@@ -142,9 +174,6 @@ while True:
 
     new_world = start.stepper(maxlen)
 
-    # print("world", new_world)
-
-
     if new_world == None:
         print("NONE")
         continue
@@ -165,6 +194,10 @@ while True:
     world = data[0]
     deletes = data[1]
     score = data[2]
+
+    if len(deletes) > 0:
+        mixer.Sound.play(explode_sound)
+
     for dels in deletes:
         for item in objects:
             if item.object["uuid"] == dels[2]:
@@ -172,24 +205,23 @@ while True:
                 item.explode(dels[0], dels[1])
                 break
 
+
     start.deletes = []
 
-    #displaysurface.fill([255,255,255])
     displaysurface.blit(bg_img,(0,0))
 
     gravity = start.current_gravity*90 
     old_gravity = -1 
     if start.current_gravity != old_gravity:
-        print("ANIMATe spin: %d!" % start.current_gravity)
+        #print("ANIMATe spin: %d!" % start.current_gravity)
         old_gravity = start.current_gravity 
+        #mixer.Sound.play(grav_swap)
+
         arrow = pygame.image.load("imgs/arrow.png")
         arrow = pygame.transform.scale(arrow, (200, 100))
         arrow = pygame.transform.rotate(arrow, gravity-90)
 
         displaysurface.blit(arrow, (100, 100))
-
-    #pygame.draw.polygon(displaysurface, (0, 0, 0), ((0, 100), (0, 200), (200, 200), (200, 300), (300, 150), (200, 0), (200, 100)))
-
 
     scoring = my_font.render('Score: %d' % score, False, (128, 128, 128))
     displaysurface.blit(scoring, (WIDTH/2-50,10))

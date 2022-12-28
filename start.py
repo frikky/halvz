@@ -9,9 +9,9 @@ world = []
 should_add = True
 
 # Quadrant for now
-xlen = 16
-ylen = 16
-maxlen = 16 
+maxlen = 32 
+xlen = maxlen 
+ylen = maxlen 
 
 percentAdded = 0
 distance_check = 5 
