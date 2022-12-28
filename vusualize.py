@@ -16,7 +16,9 @@ mixer.init()
 #mixer.music.play()
 
 crash_sound = pygame.mixer.Sound("explode.ogg")
+pygame.font.init() # you have to call this at the start,
 
+my_font = pygame.font.SysFont('Comic Sans MS', 50)
 
 
 vec = pygame.math.Vector2  # 2 for two dimensional
@@ -86,13 +88,17 @@ class Block(pygame.sprite.Sprite):
         
         xstart = WIDTH-int(basepos)+(INNRWIDTH/maxlen*x-60)
         ystart = WIDTH-int(basepos)+(INNRWIDTH/maxlen*y-60)
-        print("Rect: x: %s, y: %s" % (xstart, ystart))
+        #print("Rect: x: %s, y: %s" % (xstart, ystart))
         for item in exp:
-            displaysurface.blit(item, (xstart, ystart))
-            pygame.display.update()
-            time.sleep(0.1)
+            item = pygame.transform.scale(item, (int(INNRWIDTH/maxlen-1), int(INNRWIDTH/maxlen-1)))
+            for i in range(0, 1000):
+                displaysurface.blit(item, (xstart, ystart))
 
-        print()
+
+            pygame.display.update()
+            #time.sleep(0.1)
+
+        #print()
         #soundObj = mixer.Sound('explode.mp3')
         #soundObj = mixer.music.load(r'explode.mp3')
         #soundObj.play()
@@ -148,10 +154,11 @@ while True:
     data = start.print_world()
     world = data[0]
     deletes = data[1]
+    score = data[2]
     for dels in deletes:
         for item in objects:
             if item.object["uuid"] == dels[2]:
-                print("Del y: %d, x:%d, uuid: %s" % (dels[0], dels[1], dels[2]))
+                #print("Del y: %d, x:%d, uuid: %s" % (dels[0], dels[1], dels[2]))
                 item.explode(dels[0], dels[1])
                 break
 
@@ -161,6 +168,10 @@ while True:
 
     # print("world", new_world)
     displaysurface.fill([0,0,0])
+
+    text_surface = my_font.render('Score: %d' % score, False, (128, 128, 128))
+    displaysurface.blit(text_surface, (WIDTH/2-50,10))
+
     if new_world == None:
         print("NONE")
         continue

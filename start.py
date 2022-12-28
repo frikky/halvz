@@ -49,7 +49,7 @@ def rewrite_pixel(value):
 def print_world():
     #for i in range(maxlen*maxlen):
     #    sys.stdout.write(f"\b \b")
-    return (world, deletes)
+    return (world, deletes, score)
 
     for line in world:
         for pixel in line:
