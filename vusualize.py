@@ -20,7 +20,6 @@ pygame.font.init() # you have to call this at the start,
 
 my_font = pygame.font.SysFont('Comic Sans MS', 50)
 
-
 vec = pygame.math.Vector2  # 2 for two dimensional
  
 HEIGHT = 1000 
@@ -38,6 +37,9 @@ FramePerSec = pygame.time.Clock()
 boxsize = 50
  
 displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
+bg_img = pygame.image.load('imgs/background.png')
+bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+
 pygame.display.set_caption("Halvz")
 basepos = WIDTH-INNRWIDTH/2 
 
@@ -91,27 +93,12 @@ class Block(pygame.sprite.Sprite):
         #print("Rect: x: %s, y: %s" % (xstart, ystart))
         for item in exp:
             item = pygame.transform.scale(item, (int(INNRWIDTH/maxlen-1), int(INNRWIDTH/maxlen-1)))
-            for i in range(0, 1000):
+            # 1000 = good
+            for i in range(0, 200):
                 displaysurface.blit(item, (xstart, ystart))
 
 
             pygame.display.update()
-            #time.sleep(0.1)
-
-        #print()
-        #soundObj = mixer.Sound('explode.mp3')
-        #soundObj = mixer.music.load(r'explode.mp3')
-        #soundObj.play()
-        #soundObj.play()
-
-        #pygame.mixer.Sound.play(soundObj)
-
-        #self.pos.y = 0 
-        #self.pos.x = 0 
-        #self.surf.fill((0,0,0))
-
-
-        #self.rect.midbottom = self.pos
 
 class platform(pygame.sprite.Sprite):
     def __init__(self):
@@ -131,6 +118,7 @@ all_sprites.add(PT1)
 #all_sprites.add(P1)
 #    
 
+old_gravity = 0
 objects = []
 while True:
 
@@ -151,26 +139,11 @@ while True:
         else:
             continue
 
-    data = start.print_world()
-    world = data[0]
-    deletes = data[1]
-    score = data[2]
-    for dels in deletes:
-        for item in objects:
-            if item.object["uuid"] == dels[2]:
-                #print("Del y: %d, x:%d, uuid: %s" % (dels[0], dels[1], dels[2]))
-                item.explode(dels[0], dels[1])
-                break
-
-    start.deletes = []
 
     new_world = start.stepper(maxlen)
 
     # print("world", new_world)
-    displaysurface.fill([0,0,0])
 
-    text_surface = my_font.render('Score: %d' % score, False, (128, 128, 128))
-    displaysurface.blit(text_surface, (WIDTH/2-50,10))
 
     if new_world == None:
         print("NONE")
@@ -186,6 +159,42 @@ while True:
                 newobj = Block(pixel)
                 all_sprites.add(newobj)
                 objects.append(newobj)
+
+
+    data = start.print_world()
+    world = data[0]
+    deletes = data[1]
+    score = data[2]
+    for dels in deletes:
+        for item in objects:
+            if item.object["uuid"] == dels[2]:
+                #print("Del y: %d, x:%d, uuid: %s" % (dels[0], dels[1], dels[2]))
+                item.explode(dels[0], dels[1])
+                break
+
+    start.deletes = []
+
+    #displaysurface.fill([255,255,255])
+    displaysurface.blit(bg_img,(0,0))
+
+    gravity = start.current_gravity*90 
+    old_gravity = -1 
+    if start.current_gravity != old_gravity:
+        print("ANIMATe spin: %d!" % start.current_gravity)
+        old_gravity = start.current_gravity 
+        arrow = pygame.image.load("imgs/arrow.png")
+        arrow = pygame.transform.scale(arrow, (200, 100))
+        arrow = pygame.transform.rotate(arrow, gravity-90)
+
+        displaysurface.blit(arrow, (100, 100))
+
+    #pygame.draw.polygon(displaysurface, (0, 0, 0), ((0, 100), (0, 200), (200, 200), (200, 300), (300, 150), (200, 0), (200, 100)))
+
+
+    scoring = my_font.render('Score: %d' % score, False, (128, 128, 128))
+    displaysurface.blit(scoring, (WIDTH/2-50,10))
+    gravity = my_font.render('Gravity: %s' % gravity, False, (128, 128, 128))
+    displaysurface.blit(gravity, (WIDTH/2-50, 60))
 
     iterations += 1
     for event in pygame.event.get():
