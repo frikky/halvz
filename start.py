@@ -19,6 +19,8 @@ score = 0
 iterations = 0
 gravity_swaps = 0
 
+deletes = []
+
 def init():
     global world
     world = []
@@ -47,7 +49,7 @@ def rewrite_pixel(value):
 def print_world():
     #for i in range(maxlen*maxlen):
     #    sys.stdout.write(f"\b \b")
-    return world
+    return (world, deletes)
 
     for line in world:
         for pixel in line:
@@ -57,12 +59,14 @@ def print_world():
             
         sys.stdout.write(f"\n")
 
-    return world
+    #return world
 
 def gravitypls():
     global world
     global distance_check 
     global score
+    global deletes
+
     
     #world = copy.deepcopy(world)
 
@@ -107,6 +111,7 @@ def gravitypls():
                         world[ypos+1][xpos+1]["dest_loc"] = " "
                         world[ypos+1][xpos+1]["source_loc"] = "\\"
                         world[ypos+1][xpos+1]["y"] = ypos+1
+                        world[ypos+1][xpos+1]["x"] = xpos+1
                         world[ypos][xpos] = None
 
                     elif option == 2  and xpos-1 >= 0 and not world[ypos+1][xpos-1]:
@@ -115,6 +120,7 @@ def gravitypls():
                         world[ypos+1][xpos-1]["dest_loc"] = "/"
                         world[ypos+1][xpos-1]["source_loc"] = " "
                         world[ypos+1][xpos-1]["y"] = ypos+1
+                        world[ypos+1][xpos-1]["x"] = xpos-1
                         world[ypos][xpos] = None
 
                 if not skipMove:
@@ -156,9 +162,12 @@ def gravitypls():
                         if found == distance_check:
                             #print("ALL SAMe DeL PLS0: %d, %d, flag: %d" % ( ypos, xpos2, flag))
                             for i in range(distance_check):
+                                deletes.append((ypos, xpos2+i, world[ypos][xpos2+i]["uuid"]))
                                 world[ypos][xpos2+i] = None
 
+                            #deletes.append((ypos, xpos2, world[ypos][xpos2]["uuid"]))
                             world[ypos][xpos2] = None
+
                             score += 5
 
                     # check ypos + 3
@@ -178,7 +187,10 @@ def gravitypls():
                         if found == distance_check:
                             #print("ALL SAMe DeL PLS1: %d, %d, flag: %d" % ( ypos, xpos2, flag))
                             for i in range(distance_check):
+                                deletes.append((ypos+i, xpos2, world[ypos+i][xpos2]["uuid"]))
                                 world[ypos+i][xpos2] = None
+
+                            #deletes.append((ypos, xpos2, world[ypos][xpos2]["uuid"]))
 
                             world[ypos][xpos2] = None
                             score += 5
@@ -199,7 +211,10 @@ def gravitypls():
                         if found == distance_check:
                             #print("ALL SAMe DeL PLS2: %d, %d, flag: %d" % ( ypos, xpos2, flag))
                             for i in range(distance_check):
+                                deletes.append((ypos-i, xpos2, world[ypos-i][xpos2]["uuid"]))
                                 world[ypos-i][xpos2] = None
+
+                            #deletes.append((ypos, xpos2, world[ypos][xpos2]["uuid"]))
 
                             world[ypos][xpos2] = None
                             score += 5
@@ -223,7 +238,7 @@ def gravity_swap():
 
     #swap = 1
     if swap == 0:
-        print("90 clockwise")
+        #print("90 clockwise")
 
         # 90 grader counter:
         for ypos in range(len(world)):
@@ -236,10 +251,13 @@ def gravity_swap():
                 if not newworld[newypos][newxpos]:
                     continue
 
+                newworld[newypos][newxpos]["x"] = newxpos
+                newworld[newypos][newxpos]["y"] = newypos
+
                 newworld[newypos][newxpos]["source_loc"] = " "
                 newworld[newypos][newxpos]["dest_loc"] = " "
     elif swap == 1:
-        print("90 counter-clockwise")
+        #print("90 counter-clockwise")
 
         # 90 grader counter:
         for ypos in range(len(world)):
@@ -252,11 +270,14 @@ def gravity_swap():
                 if not newworld[newypos][newxpos]:
                     continue
 
+                newworld[newypos][newxpos]["x"] = newxpos
+                newworld[newypos][newxpos]["y"] = newypos
+
                 newworld[newypos][newxpos]["source_loc"] = " "
                 newworld[newypos][newxpos]["dest_loc"] = " "
 
     elif swap == 2:
-        print("180 swap")
+        #print("180 swap")
 
         for ypos in range(len(world)):
             for xpos in range(len(world[ypos])):
@@ -267,6 +288,9 @@ def gravity_swap():
 
                 if not newworld[newypos][newxpos]:
                     continue
+
+                newworld[newypos][newxpos]["x"] = newxpos
+                newworld[newypos][newxpos]["y"] = newypos
 
                 newworld[newypos][newxpos]["source_loc"] = " "
                 newworld[newypos][newxpos]["dest_loc"] = " "
@@ -315,9 +339,9 @@ def stepper(maxlen):
         "source_loc": " ",
         "dest_loc": " ",
     }
-    world[ypos][xpos] = new_object
 
-    return new_object
+    world[ypos][xpos] = new_object
+    return world 
 
 if __name__ == "__main__":
     print()
