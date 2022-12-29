@@ -25,10 +25,10 @@ my_font = pygame.font.SysFont('Comic Sans MS', 50)
 
 vec = pygame.math.Vector2  # 2 for two dimensional
  
-HEIGHT = 1500 
-WIDTH = 1500
-INNRHEIGHT = 800
-INNRWIDTH = 800 
+HEIGHT = 1000 
+WIDTH = 1000
+INNRHEIGHT = 600
+INNRWIDTH = 600 
 maxlen = start.maxlen
 
 ACC = 0.5
@@ -202,7 +202,8 @@ while True:
         for item in objects:
             if item.object["uuid"] == dels[2]:
                 #print("Del y: %d, x:%d, uuid: %s" % (dels[0], dels[1], dels[2]))
-                item.explode(dels[0], dels[1])
+                new_x, new_y = start.reverse_gravity(dels[1], dels[0])
+                item.explode(new_y, new_x)
                 break
 
 

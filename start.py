@@ -13,7 +13,7 @@ maxlen = 32
 xlen = maxlen 
 ylen = maxlen 
 
-distance_check = 8 
+distance_check = 5 
 score = 0
 iterations = 0
 gravity_swaps = 0
