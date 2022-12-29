@@ -19,7 +19,7 @@ iterations = 0
 gravity_swaps = 0
 # 0 = 0 degrees, 1 = 90, 2 = 180, 3 = 240/-90
 current_gravity = 0
-swap_check = 0.2
+swap_check = 0.6
 added = 0
 
 deletes = []
