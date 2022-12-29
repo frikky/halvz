@@ -156,22 +156,22 @@ old_gravity = 0
 objects = []
 while True:
 
-    event = pygame.event.wait()
-    if event.type == QUIT:
-        pygame.quit()
-        sys.exit()
-    elif event.type == KEYDOWN:
-        if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
-            print("pressed CTRL-C as an event")
-            self.sighandle()
+    #event = pygame.event.wait()
+    #if event.type == QUIT:
+    #    pygame.quit()
+    #    sys.exit()
+    #elif event.type == KEYDOWN:
+    #    if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
+    #        print("pressed CTRL-C as an event")
+    #        self.sighandle()
 
-        if event.key == K_f:
-            pass
-        elif event.key == K_c:
-            print("Redrawaaw")
-            pass
-        else:
-            continue
+    #    if event.key == K_f:
+    #        pass
+    #    elif event.key == K_c:
+    #        print("Redrawaaw")
+    #        pass
+    #    else:
+    #        continue
 
     new_world = start.stepper(maxlen)
     mixer.Sound.play(blipp)
@@ -221,15 +221,22 @@ while True:
         #mixer.Sound.play(grav_swap)
 
         arrow = pygame.image.load("imgs/arrow.png")
-        arrow = pygame.transform.scale(arrow, (200, 100))
+        arrow = pygame.transform.scale(arrow, (200, 150))
         arrow = pygame.transform.rotate(arrow, gravity-90)
 
         displaysurface.blit(arrow, (100, 100))
+
+    filled = start.added
+    #if filled == 0:
+    #    filled = 10
+    maxadded = int(maxlen*maxlen*start.swap_check)
 
     scoring = my_font.render('Score: %d' % score, False, (128, 128, 128))
     displaysurface.blit(scoring, (WIDTH/2-50,10))
     gravity = my_font.render('Gravity: %s' % gravity, False, (128, 128, 128))
     displaysurface.blit(gravity, (WIDTH/2-50, 60))
+    filled_amount = my_font.render('Filled: %d%s' % (filled/maxadded, "%"), False, (128, 128, 128))
+    displaysurface.blit(filled_amount, (WIDTH/2-50, 110))
 
     iterations += 1
     for event in pygame.event.get():

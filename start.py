@@ -19,6 +19,8 @@ iterations = 0
 gravity_swaps = 0
 # 0 = 0 degrees, 1 = 90, 2 = 180, 3 = 240/-90
 current_gravity = 0
+swap_check = 0.2
+added = 0
 
 deletes = []
 
@@ -396,11 +398,13 @@ def stepper(maxlen):
     global world
     global should_add
     global score
+    global swap_check
+    global added
 
     # Calculate where it should go instead
     #if should_add == False:
     added = gravitypls()
-    maxadded = int(maxlen*maxlen*0.2)
+    maxadded = int(maxlen*maxlen*swap_check)
     #print("Amount: %d/%d (%d), Score: %d, Gravity Swaps: %d, Iter: %d" % (added, maxadded, maxlen*maxlen, score, gravity_swaps, iterations))
 
     if added >= maxadded:
