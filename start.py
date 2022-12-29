@@ -13,8 +13,7 @@ maxlen = 32
 xlen = maxlen 
 ylen = maxlen 
 
-percentAdded = 0
-distance_check = 5 
+distance_check = 8 
 score = 0
 iterations = 0
 gravity_swaps = 0
@@ -347,8 +346,14 @@ def reverse_gravity(x,y):
         return (newxpos, newypos)
     elif current_gravity == GRAVITY_180:
 
-        newypos = maxlen-1-x 
-        newxpos = maxlen-1-y 
+        # newypos = maxlen-1-x 
+        # newxpos = maxlen-1-y 
+
+        # newypos_temp = maxlen-1-x
+        # newxpos_temp = y
+
+        newypos = maxlen-1-y
+        newxpos = maxlen-1-x
 
         return (newxpos, newypos)
     else:
@@ -395,7 +400,7 @@ def stepper(maxlen):
     # Calculate where it should go instead
     #if should_add == False:
     added = gravitypls()
-    maxadded = int(maxlen*maxlen*0.8)
+    maxadded = int(maxlen*maxlen*0.2)
     #print("Amount: %d/%d (%d), Score: %d, Gravity Swaps: %d, Iter: %d" % (added, maxadded, maxlen*maxlen, score, gravity_swaps, iterations))
 
     if added >= maxadded:
