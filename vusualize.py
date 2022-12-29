@@ -17,6 +17,8 @@ mixer.init()
 
 explode_sound = pygame.mixer.Sound("explode.ogg")
 grav_swap = pygame.mixer.Sound("grav_swap_1.ogg")
+blipp = pygame.mixer.Sound("sound/blip_grav_1.ogg")
+
 orang = pygame.image.load("imgs/orang.png")
 grn = pygame.image.load("imgs/grn.png")
 pygame.font.init() # you have to call this at the start,
@@ -171,8 +173,8 @@ while True:
         else:
             continue
 
-
     new_world = start.stepper(maxlen)
+    mixer.Sound.play(blipp)
 
     if new_world == None:
         print("NONE")
@@ -195,8 +197,8 @@ while True:
     deletes = data[1]
     score = data[2]
 
-    if len(deletes) > 0:
-        mixer.Sound.play(explode_sound)
+    #if len(deletes) > 0:
+    #    mixer.Sound.play(explode_sound)
 
     for dels in deletes:
         for item in objects:
