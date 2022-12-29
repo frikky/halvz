@@ -15,8 +15,8 @@ mixer.init()
 #mixer.music.set_volume(0.2)
 #mixer.music.play()
 
-explode_sound = pygame.mixer.Sound("explode.ogg")
-grav_swap = pygame.mixer.Sound("grav_swap_1.ogg")
+explode_sound = pygame.mixer.Sound("sound/explode.ogg")
+grav_swap = pygame.mixer.Sound("sound/grav_swap_1.ogg")
 blipp = pygame.mixer.Sound("sound/blip_grav_1.ogg")
 
 orang = pygame.image.load("imgs/orang.png")
@@ -174,7 +174,7 @@ while True:
     #        continue
 
     new_world = start.stepper(maxlen)
-    mixer.Sound.play(blipp)
+    #mixer.Sound.play(blipp)
 
     if new_world == None:
         print("NONE")

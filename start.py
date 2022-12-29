@@ -13,13 +13,13 @@ maxlen = 32
 xlen = maxlen 
 ylen = maxlen 
 
-distance_check = 5 
+distance_check = 6
 score = 0
 iterations = 0
 gravity_swaps = 0
 # 0 = 0 degrees, 1 = 90, 2 = 180, 3 = 240/-90
 current_gravity = 0
-swap_check = 0.6
+swap_check = 0.8
 added = 0
 
 deletes = []
@@ -171,7 +171,7 @@ def gravitypls():
                             #deletes.append((ypos, xpos2, world[ypos][xpos2]["uuid"]))
                             world[ypos][xpos2] = None
 
-                            score += 5
+                            score += distance_check
 
                     # check ypos + 3
                     if ypos+distance_check > maxlen:
@@ -196,7 +196,7 @@ def gravitypls():
                             #deletes.append((ypos, xpos2, world[ypos][xpos2]["uuid"]))
 
                             world[ypos][xpos2] = None
-                            score += 5
+                            score += distance_check
 
                     # check ypos - 3
                     if ypos-distance_check <= 0:
@@ -220,7 +220,7 @@ def gravitypls():
                             #deletes.append((ypos, xpos2, world[ypos][xpos2]["uuid"]))
 
                             world[ypos][xpos2] = None
-                            score += 5
+                            score += distance_check
 
     return added
 
