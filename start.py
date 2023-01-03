@@ -9,17 +9,18 @@ world = []
 should_add = True
 
 # Quadrant for now
-maxlen = 32 
+maxlen = 16 
 xlen = maxlen 
 ylen = maxlen 
 
-distance_check = 6
+distance_check = 10 
 score = 0
+prev_gravity_swap = 0
 iterations = 0
 gravity_swaps = 0
 # 0 = 0 degrees, 1 = 90, 2 = 180, 3 = 240/-90
 current_gravity = 0
-swap_check = 0.8
+swap_check = 0.6
 added = 0
 
 deletes = []
@@ -29,6 +30,7 @@ def init():
     world = []
     x = []
 
+    # add stuff pls
     for i in range(0, maxlen):
         x.append(None)
 
@@ -77,8 +79,12 @@ def gravitypls():
     #80% = maxlen*maxlen*0.8
 
     added = 0
+    start = time.time_ns()
+    totals = []
     for ypos in range(len(world)-1, -1, -1):
+        startgrav = time.time_ns()
         for xpos in range(len(world[ypos])): 
+
             skipGravity = False
             if not world[ypos][xpos]:
                 skipGravity = True 
@@ -88,16 +94,16 @@ def gravitypls():
 
             if ypos >= maxlen-1 and not skipGravity:
                 skipGravity = True
-                world[ypos][xpos]["source_loc"] = " "
-                world[ypos][xpos]["dest_loc"] = " "
+                #world[ypos][xpos]["source_loc"] = " "
+                #world[ypos][xpos]["dest_loc"] = " "
                 #world[line-2][cnt] = None
                 #continue
 
             # Check line's X below if empty?
             # 1. Check if below first
             # 2. Is it on something? What is it?
+            skipMove = False
             if not skipGravity:
-                skipMove = False
                 if world[ypos+1][xpos]:
                     skipMove = True
 
@@ -105,14 +111,15 @@ def gravitypls():
                     #print(xpos+1, maxlen-1)
                     if option == 0:
                         # stay
-                        world[ypos+1][xpos]["source_loc"] = " "
-                        world[ypos+1][xpos]["dest_loc"] = " "
+                        #world[ypos+1][xpos]["source_loc"] = " "
+                        #world[ypos+1][xpos]["dest_loc"] = " "
+                        pass
 
                     elif option == 1 and xpos+1 <= maxlen-1 and not world[ypos+1][xpos+1]:  
                         # move to right down
                         world[ypos+1][xpos+1] = world[ypos][xpos]
-                        world[ypos+1][xpos+1]["dest_loc"] = " "
-                        world[ypos+1][xpos+1]["source_loc"] = "\\"
+                        #world[ypos+1][xpos+1]["dest_loc"] = " "
+                        #world[ypos+1][xpos+1]["source_loc"] = "\\"
                         world[ypos+1][xpos+1]["y"] = ypos+1
                         world[ypos+1][xpos+1]["x"] = xpos+1
                         world[ypos][xpos] = None
@@ -120,8 +127,8 @@ def gravitypls():
                     elif option == 2  and xpos-1 >= 0 and not world[ypos+1][xpos-1]:
                         # move to left down
                         world[ypos+1][xpos-1] = world[ypos][xpos]
-                        world[ypos+1][xpos-1]["dest_loc"] = "/"
-                        world[ypos+1][xpos-1]["source_loc"] = " "
+                        #world[ypos+1][xpos-1]["dest_loc"] = "/"
+                        #world[ypos+1][xpos-1]["source_loc"] = " "
                         world[ypos+1][xpos-1]["y"] = ypos+1
                         world[ypos+1][xpos-1]["x"] = xpos-1
                         world[ypos][xpos] = None
@@ -130,98 +137,121 @@ def gravitypls():
 
                     world[ypos+1][xpos] = world[ypos][xpos]
                     world[ypos+1][xpos]["y"] = ypos+1
-                    world[ypos+1][xpos]["source_loc"] = " "
-                    world[ypos+1][xpos]["dest_loc"] = " "
+                    #world[ypos+1][xpos]["source_loc"] = " "
+                    #world[ypos+1][xpos]["dest_loc"] = " "
 
                     world[ypos][xpos] = None
+    
 
             # every time we change a pixel something, we calculate the entire line again
             # 1 = bortover
             # 2 = oppover
             # lende = 4
-            for xpos2 in range(len(world[ypos])): 
-                # None
-                if not world[ypos][xpos2]:
-                    continue
+
+            # Almost all calculations are here
+            # How do we optimize?
+            
+            # Check if they actually hit something?
+            # No point in checking their lines in the air
+            if not skipGravity:
+
+                # Only checking currentline?
+                for xpos2 in range(xpos, len(world[ypos])): 
+                    # None
+                    if not world[ypos][xpos2]:
+                        continue
 
         
-                if 5 > world[ypos][xpos2]["flag"] > 0: 
-                
+                    if world[ypos][xpos2]["flag"] <= 0: 
+                        continue
+
                     # check xpos + 3
                     flag = world[ypos][xpos2]["flag"] 
-                    #if xpos2+distance_check > maxlen-1:
-                    if xpos2+distance_check > maxlen:
-                        pass
-                    else:
+                    if xpos2+distance_check < maxlen:
                         found = 0
+
                         for i in range(distance_check):
                             if not world[ypos][xpos2+i]:
                                 break
 
                             if world[ypos][xpos2+i]["flag"] == flag:
-                                #print("Same!!")
                                 found += 1
 
-                        if found == distance_check:
-                            #print("ALL SAMe DeL PLS0: %d, %d, flag: %d" % ( ypos, xpos2, flag))
-                            for i in range(distance_check):
-                                deletes.append((ypos, xpos2+i, world[ypos][xpos2+i]["uuid"]))
-                                world[ypos][xpos2+i] = None
+                                if found == distance_check:
+                                    #print("Same X!!")
 
-                            #deletes.append((ypos, xpos2, world[ypos][xpos2]["uuid"]))
-                            world[ypos][xpos2] = None
+                                    for i in range(distance_check):
+                                        deletes.append((ypos, xpos2+i, world[ypos][xpos2+i]["uuid"]))
+                                        world[ypos][xpos2+i] = None
 
-                            score += distance_check
+                                    world[ypos][xpos2] = None
+
+                                    score += distance_check
+                                    break
 
                     # check ypos + 3
-                    if ypos+distance_check > maxlen:
-                        pass
-                    else:
+                    if ypos+distance_check < maxlen:
                         found = 0
-                        #print(ypos+distance_check, xpos2)
                         for i in range(distance_check):
                             if not world[ypos+i][xpos2]:
                                 break
 
                             if world[ypos+i][xpos2]["flag"] == flag:
-                                #print("Same!!")
                                 found += 1
+                        
+                                if found == distance_check:
+                                    for i in range(distance_check):
+                                        deletes.append((ypos+i, xpos2, world[ypos+i][xpos2]["uuid"]))
+                                        world[ypos+i][xpos2] = None
 
-                        if found == distance_check:
-                            #print("ALL SAMe DeL PLS1: %d, %d, flag: %d" % ( ypos, xpos2, flag))
-                            for i in range(distance_check):
-                                deletes.append((ypos+i, xpos2, world[ypos+i][xpos2]["uuid"]))
-                                world[ypos+i][xpos2] = None
-
-                            #deletes.append((ypos, xpos2, world[ypos][xpos2]["uuid"]))
-
-                            world[ypos][xpos2] = None
-                            score += distance_check
+                                    world[ypos][xpos2] = None
+                                    score += distance_check
+                                    break
 
                     # check ypos - 3
-                    if ypos-distance_check <= 0:
-                        pass
-                    else:
+                    if ypos-distance_check > 0:
                         found = 0
                         for i in range(distance_check):
                             if not world[ypos-i][xpos2]:
                                 break
 
                             if world[ypos-i][xpos2]["flag"] == flag:
-                                #print("Same!!")
                                 found += 1
 
-                        if found == distance_check:
-                            #print("ALL SAMe DeL PLS2: %d, %d, flag: %d" % ( ypos, xpos2, flag))
-                            for i in range(distance_check):
-                                deletes.append((ypos-i, xpos2, world[ypos-i][xpos2]["uuid"]))
-                                world[ypos-i][xpos2] = None
+                                if found == distance_check:
+                                    for i in range(distance_check):
+                                        deletes.append((ypos-i, xpos2, world[ypos-i][xpos2]["uuid"]))
+                                        world[ypos-i][xpos2] = None
 
-                            #deletes.append((ypos, xpos2, world[ypos][xpos2]["uuid"]))
+                                    world[ypos][xpos2] = None
+                                    score += distance_check
+                                    break
 
-                            world[ypos][xpos2] = None
-                            score += distance_check
+        endgrav = time.time_ns()
+        totals.append(endgrav-startgrav)
 
+    #time.sleep(1)
+    # 60 fps = how many ns in a frame?
+    # Per line = 30.000-50.000~ for 16x16
+    # If data in line, goes up to 1.200.000
+    # 
+
+    # 32x32: 400.000~ ns by default for calc
+    # 400.000 ns * 1.0^-9 = 0.000400000s = 4ms?
+    # 4/1000 = max fps = 250@400.000ns 
+    # end num is ~ 5.000.000/iter @ 32 lines
+    # 0.005000000ns = 50ms. 1000/50 = 20 fps max 
+    # Need 3x speed somehow?
+    # 1.750.000 = max/iter@60fps!
+
+    # 8x8: topping out at 450.000~
+    # 16x16: 2.750.000
+    # 32x32: 5.500.000~
+
+    end = time.time_ns()
+    total = end-start
+    print(total, totals)
+    print()
     return added
 
 def gravity_swap():
@@ -400,21 +430,36 @@ def stepper(maxlen):
     global score
     global swap_check
     global added
+    global prev_gravity_swap
 
     # Calculate where it should go instead
     #if should_add == False:
     added = gravitypls()
     maxadded = int(maxlen*maxlen*swap_check)
-    #print("Amount: %d/%d (%d), Score: %d, Gravity Swaps: %d, Iter: %d" % (added, maxadded, maxlen*maxlen, score, gravity_swaps, iterations))
+    print("Amount: %d/%d (%d), Score: %d, Gravity Swaps: %d, Iter: %d" % (added, maxadded, maxlen*maxlen, score, gravity_swaps, iterations))
 
     if added >= maxadded:
-        gravity_swap()
-        #exit()
+        if iterations-prev_gravity_swap > 20:
+            gravity_swap()
+            prev_gravity_swap = iterations
+
         return stabelize_world() 
 
     #should_add = False 
     ypos = 0
+    maxcnt = maxlen
+
     xpos = random.randint(0, maxlen-1)
+    #if added >= maxlen*maxlen-maxlen: 
+    #    while True:
+    #        print("In while true")
+
+    #        if world[ypos][xpos] != None:
+    #            print("BAD - it has stuff!")
+    #            continue
+
+    #        xpos = random.randint(0, maxlen-1)
+    #        break
 
     new_object = {
         "uuid": str(uuid.uuid4()),

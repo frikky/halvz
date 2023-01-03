@@ -123,7 +123,7 @@ class Block(pygame.sprite.Sprite):
         for item in exp:
             item = pygame.transform.scale(item, (int(INNRWIDTH/maxlen-1), int(INNRWIDTH/maxlen-1)))
             # 1000 = good
-            for i in range(0, 200):
+            for i in range(0, 1000):
                 displaysurface.blit(item, (xstart, ystart))
 
 
@@ -142,11 +142,19 @@ class platform(pygame.sprite.Sprite):
         #self.surf = pygame.Surface((WIDTH, 20))
         self.surf.fill((0,78,29))
         self.rect = self.surf.get_rect(center = (WIDTH/2, INNRWIDTH+INNRWIDTH/2))
+        #self.rect.center = (self.x, self.y)
 
-PT1 = platform()
+    def spin(self):
+        #self.angle = (self.angle + 45) * 360
+        #arrow = pygame.transform.scale(arrow, (200, 150))
+        print("spin")
+        pygame.transform.rotate(self.surf, 270)
+        pygame.display.update()
+
+
 
 all_sprites = pygame.sprite.Group()
-all_sprites.add(PT1)
+#all_sprites.add(PT1)
 
 #new_object = start.stepper(maxlen)
 #P1 = Box({})
@@ -161,20 +169,16 @@ while True:
     #    pygame.quit()
     #    sys.exit()
     #elif event.type == KEYDOWN:
+    #    if event.key == pygame.K_RIGHT: 
+    #        print("Right!")
+    #    elif event.key == pygame.K_LEFT: 
+    #        print("Left!")
+
     #    if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
     #        print("pressed CTRL-C as an event")
     #        self.sighandle()
 
-    #    if event.key == K_f:
-    #        pass
-    #    elif event.key == K_c:
-    #        print("Redrawaaw")
-    #        pass
-    #    else:
-    #        continue
-
     new_world = start.stepper(maxlen)
-    #mixer.Sound.play(blipp)
 
     if new_world == None:
         print("NONE")
@@ -203,7 +207,6 @@ while True:
     for dels in deletes:
         for item in objects:
             if item.object["uuid"] == dels[2]:
-                #print("Del y: %d, x:%d, uuid: %s" % (dels[0], dels[1], dels[2]))
                 new_x, new_y = start.reverse_gravity(dels[1], dels[0])
                 item.explode(new_y, new_x)
                 break
@@ -249,6 +252,8 @@ while True:
         displaysurface.blit(entity.surf, entity.rect)
 
     # Render world
+    start.iterations += 1
+
     FramePerSec.tick(FPS)
     pygame.display.update()
     all_sprites.empty() 
