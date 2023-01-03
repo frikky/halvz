@@ -13,15 +13,18 @@ maxlen = 16
 xlen = maxlen 
 ylen = maxlen 
 
-distance_check = 4 
+distance_check = 6
 score = 0
-prev_gravity_swap = 0
 iterations = 0
-gravity_swaps = 0
 # 0 = 0 degrees, 1 = 90, 2 = 180, 3 = 240/-90
-current_gravity = 0
-swap_check = 0.6
 added = 0
+
+# Gravity
+#swap_check = 0.6
+swap_check = 1.1
+current_gravity = 0
+prev_gravity_swap = 0
+gravity_swaps = 0
 
 deletes = []
 
@@ -250,11 +253,11 @@ def gravitypls():
 
     end = time.time_ns()
     total = end-start
-    print(total, totals)
-    print()
+    #print(total, totals)
+    #print()
     return added
 
-def gravity_swap():
+def gravity_swap(direction):
     global world
     global gravity_swaps
     global current_gravity
@@ -267,10 +270,50 @@ def gravity_swap():
 
         newworld.append(janus)
 
-    #print("\n\nGRAVITYSWAPPP WOOOOOOOOOO: \n\n")
-    swap = random.randint(0, 2)
+    if direction == current_gravity:
+        return 
 
-    #swap = 1
+    swap = random.randint(0, 2)
+    if direction >= 0:
+        # Based on current gravity
+        if direction == 1:
+            #print("SWAP: RIGHT")
+            if current_gravity == 0:
+                swap = 0
+            elif current_gravity == 2:
+                swap = 1
+            elif current_gravity == 3:
+                swap = 2
+        elif direction == 2:
+            #print("SWAP: UP")
+            if current_gravity == 0:
+                swap = 2 
+            elif current_gravity == 1:
+                swap = 0
+            elif current_gravity == 3:
+                swap = 1
+        elif direction == 3:
+            #print("SWAP: LEFT")
+            if current_gravity == 0:
+                swap = 1
+            elif current_gravity == 1:
+                swap = 2
+            elif current_gravity == 2:
+                swap = 0
+        elif direction == 0:
+            #print("SWAP: DOWN")
+            if current_gravity == 1:
+                swap = 1
+            elif current_gravity == 2:
+                swap = 2
+            elif current_gravity == 3:
+                swap = 0
+        else:
+            print("NO handler for direction %d" % direction)
+            exit()
+
+    #print("\n\nGRAVITYSWAPPP WOOOOOOOOOO: %d \n\n" % swap)
+
     if swap == 0:
         #print("90 clockwise")
 
@@ -436,11 +479,11 @@ def stepper(maxlen):
     #if should_add == False:
     added = gravitypls()
     maxadded = int(maxlen*maxlen*swap_check)
-    print("Amount: %d/%d (%d), Score: %d, Gravity Swaps: %d, Iter: %d" % (added, maxadded, maxlen*maxlen, score, gravity_swaps, iterations))
+    #print("Amount: %d/%d (%d), Score: %d, Gravity Swaps: %d, Iter: %d" % (added, maxadded, maxlen*maxlen, score, gravity_swaps, iterations))
 
     if added >= maxadded:
         if iterations-prev_gravity_swap > 20:
-            gravity_swap()
+            gravity_swap(-1)
             prev_gravity_swap = iterations
 
         return stabelize_world() 

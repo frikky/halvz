@@ -3,6 +3,7 @@ import pygame
 import random
 import time
 import os
+import threading
 from pygame.locals import *
 from pygame import mixer
 
@@ -55,7 +56,6 @@ bg_img.blit(dark, (0, 0), special_flags=pygame.BLEND_RGBA_SUB)
 pygame.display.set_caption("Halvz")
 basepos = WIDTH-INNRWIDTH/2 
 
-iterations = 0
 start.init()
 
 class Block(pygame.sprite.Sprite):
@@ -65,6 +65,7 @@ class Block(pygame.sprite.Sprite):
     def __init__(self, input_object):
         global orang
         global grn 
+
        # Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)
 
@@ -123,17 +124,12 @@ class Block(pygame.sprite.Sprite):
         for item in exp:
             item = pygame.transform.scale(item, (int(INNRWIDTH/maxlen-1), int(INNRWIDTH/maxlen-1)))
             # 1000 = good
-            for i in range(0, 200):
+            for i in range(0, 1):
                 displaysurface.blit(item, (xstart, ystart))
 
 
             pygame.display.update()
 
-
-        #charRect = pygame.Rect((0,0),(10, 10))
-        #size = int((INNRWIDTH/maxlen-1)/2), int((INNRWIDTH/maxlen-1)/2)
-        #orang = pygame.transform.scale(orang, size)
-        #self.surf.blit(orang, charRect)
 
 class platform(pygame.sprite.Sprite):
     def __init__(self):
@@ -151,110 +147,145 @@ class platform(pygame.sprite.Sprite):
         pygame.transform.rotate(self.surf, 270)
         pygame.display.update()
 
+def explode(item, dels):
+    new_x, new_y = start.reverse_gravity(dels[1], dels[0])
+    item.explode(new_y, new_x)
 
-
-#all_sprites.add(PT1)
-
-#new_object = start.stepper(maxlen)
-#P1 = Box({})
-#all_sprites.add(P1)
-all_sprites = pygame.sprite.Group()
-
-old_gravity = 0
-objects = []
-while True:
-
-    #event = pygame.event.wait()
-    #if event.type == QUIT:
-    #    pygame.quit()
-    #    sys.exit()
-    #elif event.type == KEYDOWN:
-    #    if event.key == pygame.K_RIGHT: 
-    #        print("Right!")
-    #    elif event.key == pygame.K_LEFT: 
-    #        print("Left!")
-
-    #    if event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
-    #        print("pressed CTRL-C as an event")
-    #        self.sighandle()
-
-    new_world = start.stepper(maxlen)
-
-    if new_world == None:
-        print("NONE")
-        continue
-
-    if len(objects) >= maxlen*maxlen*4:
-        objects = objects[maxlen*maxlen*2:]
-
-    for line in new_world:
-        for pixel in line:
-            if pixel: 
-                newobj = Block(pixel)
-                all_sprites.add(newobj)
-                objects.append(newobj)
-
-
-    data = start.print_world()
-    world = data[0]
-    deletes = data[1]
-    score = data[2]
-
-    #if len(deletes) > 0:
-    #    mixer.Sound.play(explode_sound)
-
-
-    print("Objects: %d" % len(objects))
+def run_deletes(objects, deletes):
+    all_deletes = []
     for dels in deletes:
         for item in objects:
             if item.object["uuid"] == dels[2]:
-                new_x, new_y = start.reverse_gravity(dels[1], dels[0])
-                item.explode(new_y, new_x)
+                x = threading.Thread(target=explode, args=(item, dels, ))
+                x.start()
+                all_deletes.append(x)
                 break
 
+    for item in all_deletes:
+        item.join()
 
-    start.deletes = []
+def run_game():
+    iterations = 0
 
+    all_sprites = pygame.sprite.Group()
+    
+    old_gravity = 0
+    objects = []
+    running = False
+    while True:
+        keys = pygame.key.get_pressed()  
+        if keys[pygame.K_UP]:
+            start.gravity_swap(2)
+        elif keys[pygame.K_DOWN]:
+            start.gravity_swap(0)
+        elif keys[pygame.K_LEFT]:
+            start.gravity_swap(3)
+        elif keys[pygame.K_RIGHT]:
+            start.gravity_swap(1)
+        elif keys[27]:
+            show_menu("pause")
+            return
+    
+        new_world = start.stepper(maxlen)
+    
+        if new_world == None:
+            print("NONE")
+            continue
+    
+        if len(objects) >= maxlen*maxlen*4:
+            objects = objects[maxlen*maxlen*2:]
+    
+        for line in new_world:
+            for pixel in line:
+                if pixel: 
+                    newobj = Block(pixel)
+                    all_sprites.add(newobj)
+                    objects.append(newobj)
+    
+    
+        data = start.print_world()
+        world = data[0]
+        deletes = data[1]
+        score = data[2]
+
+
+
+        # Animations :)
+        run_deletes(objects, deletes)
+
+    
+        start.deletes = []
+    
+        displaysurface.blit(bg_img,(0,0))
+    
+        gravity = start.current_gravity*90 
+        old_gravity = -1 
+        if start.current_gravity != old_gravity:
+            old_gravity = start.current_gravity 
+    
+            arrow = pygame.image.load("imgs/arrow.png")
+            arrow = pygame.transform.scale(arrow, (200, 150))
+            arrow = pygame.transform.rotate(arrow, gravity-90)
+    
+            displaysurface.blit(arrow, (100, 100))
+    
+        filled = start.added
+        maxadded = int(maxlen*maxlen*start.swap_check)
+        if filled >= maxlen*maxlen:
+            print("Should exit?")
+            return
+
+        scoring = my_font.render('Score: %d' % score, False, (128, 128, 128))
+        displaysurface.blit(scoring, (WIDTH/2-50,10))
+
+        filled_amount = my_font.render('Filled: %.2f%s' % ((filled/maxadded)*100, "%"), False, (128, 128, 128))
+        displaysurface.blit(filled_amount, (WIDTH/2-50, 60))
+    
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+    
+    
+        for entity in all_sprites:
+            displaysurface.blit(entity.surf, entity.rect)
+    
+        # Render world
+        iterations += 1
+        start.iterations += 1
+        FramePerSec.tick(FPS)
+
+        pygame.display.update()
+        all_sprites.empty() 
+
+# This is shitty and running inside itself rofl
+def show_menu(status):
+    all_sprites = pygame.sprite.Group()
     displaysurface.blit(bg_img,(0,0))
 
-    gravity = start.current_gravity*90 
-    old_gravity = -1 
-    if start.current_gravity != old_gravity:
-        #print("ANIMATe spin: %d!" % start.current_gravity)
-        old_gravity = start.current_gravity 
-        #mixer.Sound.play(grav_swap)
+    if status == "pause":
+        start_text = my_font.render('Press Space to Continue', False, (128, 128, 128))
+        displaysurface.blit(start_text, (WIDTH/2-190, HEIGHT/2-25))
 
-        arrow = pygame.image.load("imgs/arrow.png")
-        arrow = pygame.transform.scale(arrow, (200, 150))
-        arrow = pygame.transform.rotate(arrow, gravity-90)
-
-        displaysurface.blit(arrow, (100, 100))
-
-    filled = start.added
-    #if filled == 0:
-    #    filled = 10
-    maxadded = int(maxlen*maxlen*start.swap_check)
-
-    scoring = my_font.render('Score: %d' % score, False, (128, 128, 128))
-    displaysurface.blit(scoring, (WIDTH/2-50,10))
-    gravity = my_font.render('Gravity: %s' % gravity, False, (128, 128, 128))
-    displaysurface.blit(gravity, (WIDTH/2-50, 60))
-    filled_amount = my_font.render('Filled: %.2f%s' % ((filled/maxadded)*100, "%"), False, (128, 128, 128))
-    displaysurface.blit(filled_amount, (WIDTH/2-50, 110))
-
-    iterations += 1
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
+        #filled_amount = my_font.render('Paused', False, (128, 128, 128))
+        #displaysurface.blit(filled_amount, (WIDTH/2-60, HEIGHT/2+25))
+    else:
+        start_text = my_font.render('Press Space to start', False, (128, 128, 128))
+        displaysurface.blit(start_text, (WIDTH/2-150, HEIGHT/2-25))
 
 
-    for entity in all_sprites:
-        displaysurface.blit(entity.surf, entity.rect)
-
-    # Render world
-    start.iterations += 1
-
-    FramePerSec.tick(FPS)
     pygame.display.update()
-    all_sprites.empty() 
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.KEYUP:
+                if event.key == 32:
+                    run_game()
+                    return
+
+if __name__ == "__main__":
+    show_menu("start")
+    #run_game()
