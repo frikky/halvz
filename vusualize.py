@@ -238,7 +238,7 @@ while True:
     displaysurface.blit(scoring, (WIDTH/2-50,10))
     gravity = my_font.render('Gravity: %s' % gravity, False, (128, 128, 128))
     displaysurface.blit(gravity, (WIDTH/2-50, 60))
-    filled_amount = my_font.render('Filled: %d%s' % (filled/maxadded, "%"), False, (128, 128, 128))
+    filled_amount = my_font.render('Filled: %.2f%s' % ((filled/maxadded)*100, "%"), False, (128, 128, 128))
     displaysurface.blit(filled_amount, (WIDTH/2-50, 110))
 
     iterations += 1
