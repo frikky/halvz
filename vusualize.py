@@ -184,8 +184,8 @@ while True:
         print("NONE")
         continue
 
-    if len(objects) >= 1024:
-        objects = objects[-256:]
+    if len(objects) >= maxlen*maxlen*4:
+        objects = objects[maxlen*maxlen*2:]
 
     for line in new_world:
         for pixel in line:
