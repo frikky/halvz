@@ -13,7 +13,7 @@ maxlen = 16
 xlen = maxlen 
 ylen = maxlen 
 
-distance_check = 10 
+distance_check = 4 
 score = 0
 prev_gravity_swap = 0
 iterations = 0

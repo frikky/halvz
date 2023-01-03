@@ -123,7 +123,7 @@ class Block(pygame.sprite.Sprite):
         for item in exp:
             item = pygame.transform.scale(item, (int(INNRWIDTH/maxlen-1), int(INNRWIDTH/maxlen-1)))
             # 1000 = good
-            for i in range(0, 1000):
+            for i in range(0, 200):
                 displaysurface.blit(item, (xstart, ystart))
 
 
@@ -153,12 +153,12 @@ class platform(pygame.sprite.Sprite):
 
 
 
-all_sprites = pygame.sprite.Group()
 #all_sprites.add(PT1)
 
 #new_object = start.stepper(maxlen)
 #P1 = Box({})
 #all_sprites.add(P1)
+all_sprites = pygame.sprite.Group()
 
 old_gravity = 0
 objects = []
@@ -184,13 +184,12 @@ while True:
         print("NONE")
         continue
 
+    if len(objects) >= 1024:
+        objects = objects[-256:]
+
     for line in new_world:
-        # print("line", line)
         for pixel in line:
             if pixel: 
-                # print("pixel", pixel)
-
-                # newobj = Box(pixel)
                 newobj = Block(pixel)
                 all_sprites.add(newobj)
                 objects.append(newobj)
@@ -204,6 +203,8 @@ while True:
     #if len(deletes) > 0:
     #    mixer.Sound.play(explode_sound)
 
+
+    print("Objects: %d" % len(objects))
     for dels in deletes:
         for item in objects:
             if item.object["uuid"] == dels[2]:
