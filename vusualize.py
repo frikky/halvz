@@ -36,7 +36,8 @@ maxlen = start.maxlen
 
 ACC = 0.5
 FRIC = -0.12
-FPS = 60
+FPS = 60 
+ADDBLOCK = 15 
  
 FramePerSec = pygame.time.Clock()
 
@@ -165,32 +166,62 @@ def run_deletes(objects, deletes):
         item.join()
 
 def run_game():
-    iterations = 0
+    global maxlen 
+    global ADDBLOCK 
 
     all_sprites = pygame.sprite.Group()
-    
+
     old_gravity = 0
+    iterations = 1
+    clicks = 1
+    difficulty = 1
+
     objects = []
     running = False
+
     while True:
         keys = pygame.key.get_pressed()  
+        changed = False
         if keys[pygame.K_UP]:
-            start.gravity_swap(2)
+            changed = start.gravity_swap(2)
         elif keys[pygame.K_DOWN]:
-            start.gravity_swap(0)
+            changed = start.gravity_swap(0)
         elif keys[pygame.K_LEFT]:
-            start.gravity_swap(3)
+            changed = start.gravity_swap(3)
         elif keys[pygame.K_RIGHT]:
-            start.gravity_swap(1)
+            changed = start.gravity_swap(1)
         elif keys[27]:
-            show_menu("pause")
+            show_menu("pause", start.score)
             return
-    
-        new_world = start.stepper(maxlen)
-    
+
+        if changed == True:
+            clicks += 1
+            if clicks % 10 == 0:
+                start.distance_check += 1
+
+            if clicks % 3 == 0:
+                if ADDBLOCK > 1:
+                    ADDBLOCK -= 1
+
+            if clicks % 5 == 0:
+                difficulty += 1
+
+                start.maxlen += 1
+                maxlen += 1
+
+                x = [] 
+                for i in range(0, maxlen):
+                    x.append(None)
+
+                start.world.append(x.copy())
+
+        iterations += 1
+        start.iterations += 1
+
+        new_world = start.stepper(maxlen, iterations % ADDBLOCK != 0)
         if new_world == None:
-            print("NONE")
-            continue
+            show_menu("lose", start.score)
+            return
     
         if len(objects) >= maxlen*maxlen*4:
             objects = objects[maxlen*maxlen*2:]
@@ -207,7 +238,6 @@ def run_game():
         world = data[0]
         deletes = data[1]
         score = data[2]
-
 
 
         # Animations :)
@@ -230,9 +260,10 @@ def run_game():
             displaysurface.blit(arrow, (100, 100))
     
         filled = start.added
-        maxadded = int(maxlen*maxlen*start.swap_check)
-        if filled >= maxlen*maxlen:
-            print("Should exit?")
+        maxadded = int(maxlen*maxlen*start.auto_swap_check)
+        if filled >= maxlen*maxlen-1 or start.maxlen >= 32:
+            print("Lost!")
+            show_menu("lose", start.score)
             return
 
         scoring = my_font.render('Score: %d' % score, False, (128, 128, 128))
@@ -240,32 +271,56 @@ def run_game():
 
         filled_amount = my_font.render('Filled: %.2f%s' % ((filled/maxadded)*100, "%"), False, (128, 128, 128))
         displaysurface.blit(filled_amount, (WIDTH/2-50, 60))
+
+        difficulty_text = my_font.render('Difficulty: %d, %dx%d, %.1f/sec)' % (start.distance_check, start.maxlen, start.maxlen, FPS/ADDBLOCK), False, (128, 128, 128))
+
+        displaysurface.blit(difficulty_text, (WIDTH/2-50, 110))
     
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
     
-    
         for entity in all_sprites:
             displaysurface.blit(entity.surf, entity.rect)
     
         # Render world
-        iterations += 1
-        start.iterations += 1
         FramePerSec.tick(FPS)
 
         pygame.display.update()
         all_sprites.empty() 
 
 # This is shitty and running inside itself rofl
-def show_menu(status):
+def show_menu(status, points):
+    global maxlen
+    global ADDBLOCK 
+
     all_sprites = pygame.sprite.Group()
     displaysurface.blit(bg_img,(0,0))
 
     if status == "pause":
         start_text = my_font.render('Press Space to Continue', False, (128, 128, 128))
         displaysurface.blit(start_text, (WIDTH/2-190, HEIGHT/2-25))
+    elif status == "lose":
+        start_text = my_font.render('You lost. Press Space to try again', False, (128, 128, 128))
+        displaysurface.blit(start_text, (WIDTH/2-290, HEIGHT/2-25))
+
+        score = my_font.render('Score: %d' % points, False, (128, 128, 128))
+        displaysurface.blit(score, (WIDTH/2-100, HEIGHT/2+25))
+
+        start.score = 0
+        start.iterations = 0
+        start.current_gravity = 0
+        start.prev_gravity_swap = 0
+        start.gravity_swaps = 0
+        start.maxlen = start.original_maxlen
+
+        maxlen = start.maxlen
+        ADDBLOCK = 15 
+
+
+        start.world = []
+        start.init()
 
         #filled_amount = my_font.render('Paused', False, (128, 128, 128))
         #displaysurface.blit(filled_amount, (WIDTH/2-60, HEIGHT/2+25))
@@ -287,5 +342,5 @@ def show_menu(status):
                     return
 
 if __name__ == "__main__":
-    show_menu("start")
+    show_menu("start", 0)
     #run_game()

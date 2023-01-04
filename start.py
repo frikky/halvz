@@ -9,19 +9,21 @@ world = []
 should_add = True
 
 # Quadrant for now
-maxlen = 16 
+distance_check = 3
+maxlen = 5
 xlen = maxlen 
 ylen = maxlen 
 
-distance_check = 6
+original_maxlen = copy.deepcopy(maxlen)
+
 score = 0
 iterations = 0
 # 0 = 0 degrees, 1 = 90, 2 = 180, 3 = 240/-90
 added = 0
 
 # Gravity
-#swap_check = 0.6
-swap_check = 1.1
+#auto_swap_check = 0.6
+auto_swap_check = 1.1
 current_gravity = 0
 prev_gravity_swap = 0
 gravity_swaps = 0
@@ -84,6 +86,7 @@ def gravitypls():
     added = 0
     start = time.time_ns()
     totals = []
+    exponent = 1
     for ypos in range(len(world)-1, -1, -1):
         startgrav = time.time_ns()
         for xpos in range(len(world[ypos])): 
@@ -111,21 +114,10 @@ def gravitypls():
                     skipMove = True
 
                     option = random.randint(0,2) 
-                    #print(xpos+1, maxlen-1)
+                    #print(len(world[ypos+1]), xpos)
                     if option == 0:
                         # stay
-                        #world[ypos+1][xpos]["source_loc"] = " "
-                        #world[ypos+1][xpos]["dest_loc"] = " "
                         pass
-
-                    elif option == 1 and xpos+1 <= maxlen-1 and not world[ypos+1][xpos+1]:  
-                        # move to right down
-                        world[ypos+1][xpos+1] = world[ypos][xpos]
-                        #world[ypos+1][xpos+1]["dest_loc"] = " "
-                        #world[ypos+1][xpos+1]["source_loc"] = "\\"
-                        world[ypos+1][xpos+1]["y"] = ypos+1
-                        world[ypos+1][xpos+1]["x"] = xpos+1
-                        world[ypos][xpos] = None
 
                     elif option == 2  and xpos-1 >= 0 and not world[ypos+1][xpos-1]:
                         # move to left down
@@ -135,6 +127,16 @@ def gravitypls():
                         world[ypos+1][xpos-1]["y"] = ypos+1
                         world[ypos+1][xpos-1]["x"] = xpos-1
                         world[ypos][xpos] = None
+
+                    elif option == 1 and xpos+1 <= maxlen-2 and not world[ypos+1][xpos+1]:  
+                        # move to right down
+                        world[ypos+1][xpos+1] = world[ypos][xpos]
+                        #world[ypos+1][xpos+1]["dest_loc"] = " "
+                        #world[ypos+1][xpos+1]["source_loc"] = "\\"
+                        world[ypos+1][xpos+1]["y"] = ypos+1
+                        world[ypos+1][xpos+1]["x"] = xpos+1
+                        world[ypos][xpos] = None
+
 
                 if not skipMove:
 
@@ -189,7 +191,8 @@ def gravitypls():
 
                                     world[ypos][xpos2] = None
 
-                                    score += distance_check
+                                    score += distance_check*exponent
+                                    exponent = exponent*2
                                     break
 
                     # check ypos + 3
@@ -208,7 +211,8 @@ def gravitypls():
                                         world[ypos+i][xpos2] = None
 
                                     world[ypos][xpos2] = None
-                                    score += distance_check
+                                    score += distance_check*exponent
+                                    exponent = exponent*2
                                     break
 
                     # check ypos - 3
@@ -227,7 +231,8 @@ def gravitypls():
                                         world[ypos-i][xpos2] = None
 
                                     world[ypos][xpos2] = None
-                                    score += distance_check
+                                    score += distance_check*exponent
+                                    exponent = exponent*2
                                     break
 
         endgrav = time.time_ns()
@@ -253,8 +258,7 @@ def gravitypls():
 
     end = time.time_ns()
     total = end-start
-    #print(total, totals)
-    #print()
+    print("Step calculation: ", total, totals)
     return added
 
 def gravity_swap(direction):
@@ -271,7 +275,7 @@ def gravity_swap(direction):
         newworld.append(janus)
 
     if direction == current_gravity:
-        return 
+        return False
 
     swap = random.randint(0, 2)
     if direction >= 0:
@@ -395,6 +399,7 @@ def gravity_swap(direction):
     gravity_swaps += 1 
     #print()
     #print_world()
+    return True
 
 def reverse_gravity(x,y):
 
@@ -467,20 +472,17 @@ def stabelize_world():
     return newworld
 
 
-def stepper(maxlen):
+def stepper(maxlen, skipadd):
     global world
     global should_add
     global score
-    global swap_check
+    global auto_swap_check
     global added
     global prev_gravity_swap
 
     # Calculate where it should go instead
-    #if should_add == False:
     added = gravitypls()
-    maxadded = int(maxlen*maxlen*swap_check)
-    #print("Amount: %d/%d (%d), Score: %d, Gravity Swaps: %d, Iter: %d" % (added, maxadded, maxlen*maxlen, score, gravity_swaps, iterations))
-
+    maxadded = int(maxlen*maxlen*auto_swap_check)
     if added >= maxadded:
         if iterations-prev_gravity_swap > 20:
             gravity_swap(-1)
@@ -488,21 +490,19 @@ def stepper(maxlen):
 
         return stabelize_world() 
 
-    #should_add = False 
+    if skipadd == True:
+        return stabelize_world() 
+
     ypos = 0
     maxcnt = maxlen
 
-    xpos = random.randint(0, maxlen-1)
-    #if added >= maxlen*maxlen-maxlen: 
-    #    while True:
-    #        print("In while true")
-
-    #        if world[ypos][xpos] != None:
-    #            print("BAD - it has stuff!")
-    #            continue
-
-    #        xpos = random.randint(0, maxlen-1)
-    #        break
+    xpos = maxlen 
+    while xpos >= len(world[ypos]):
+        xpos = random.randint(0, maxlen-1)
+    
+    if world[ypos][xpos] != None:
+        print("\nLocation %d:%d already taken. Loss!" % (xpos, ypos))
+        return None
 
     new_object = {
         "uuid": str(uuid.uuid4()),
@@ -514,6 +514,7 @@ def stepper(maxlen):
     }
 
     world[ypos][xpos] = new_object
+
     return stabelize_world() 
 
 if __name__ == "__main__":
@@ -526,7 +527,7 @@ if __name__ == "__main__":
             init()
             print()
 
-        stepper(maxlen)
+        stepper(maxlen, False)
         print_world()
         iterations += 1
         #time.sleep(10)
