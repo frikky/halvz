@@ -15,6 +15,7 @@ xlen = maxlen
 ylen = maxlen 
 
 original_maxlen = copy.deepcopy(maxlen)
+original_distance_check = copy.deepcopy(distance_check)
 
 score = 0
 iterations = 0
@@ -23,7 +24,7 @@ added = 0
 
 # Gravity
 #auto_swap_check = 0.6
-auto_swap_check = 1.1
+auto_swap_check = 1.0
 current_gravity = 0
 prev_gravity_swap = 0
 gravity_swaps = 0
@@ -87,6 +88,8 @@ def gravitypls():
     start = time.time_ns()
     totals = []
     exponent = 1
+    exponent_modifier = 4
+
     for ypos in range(len(world)-1, -1, -1):
         startgrav = time.time_ns()
         for xpos in range(len(world[ypos])): 
@@ -128,6 +131,9 @@ def gravitypls():
                         world[ypos+1][xpos-1]["x"] = xpos-1
                         world[ypos][xpos] = None
 
+                        #ypos = ypos+1
+                        xpos = xpos-1
+
                     elif option == 1 and xpos+1 <= maxlen-2 and not world[ypos+1][xpos+1]:  
                         # move to right down
                         world[ypos+1][xpos+1] = world[ypos][xpos]
@@ -136,6 +142,9 @@ def gravitypls():
                         world[ypos+1][xpos+1]["y"] = ypos+1
                         world[ypos+1][xpos+1]["x"] = xpos+1
                         world[ypos][xpos] = None
+
+                        #ypos = ypos+1
+                        xpos = xpos+1 
 
 
                 if not skipMove:
@@ -158,15 +167,15 @@ def gravitypls():
             
             # Check if they actually hit something?
             # No point in checking their lines in the air
+            skipGravity = False
             if not skipGravity:
 
                 # Only checking currentline?
-                for xpos2 in range(xpos, len(world[ypos])): 
+                for xpos2 in range(0, len(world[ypos])): 
                     # None
                     if not world[ypos][xpos2]:
                         continue
 
-        
                     if world[ypos][xpos2]["flag"] <= 0: 
                         continue
 
@@ -192,7 +201,7 @@ def gravitypls():
                                     world[ypos][xpos2] = None
 
                                     score += distance_check*exponent
-                                    exponent = exponent*2
+                                    exponent = exponent*exponent_modifier
                                     break
 
                     # check ypos + 3
@@ -212,7 +221,7 @@ def gravitypls():
 
                                     world[ypos][xpos2] = None
                                     score += distance_check*exponent
-                                    exponent = exponent*2
+                                    exponent = exponent*exponent_modifier
                                     break
 
                     # check ypos - 3
@@ -232,11 +241,24 @@ def gravitypls():
 
                                     world[ypos][xpos2] = None
                                     score += distance_check*exponent
-                                    exponent = exponent*2
+                                    exponent = exponent*exponent_modifier
                                     break
 
         endgrav = time.time_ns()
         totals.append(endgrav-startgrav)
+
+
+    if exponent > 1:
+        addedscore = 0
+        test_exponent = 1
+        while True:
+            if test_exponent == exponent:
+                break
+
+            addedscore += distance_check*test_exponent
+            test_exponent = test_exponent*exponent_modifier
+
+        print("exponent: %d, added score: %d" % (exponent, addedscore))
 
     #time.sleep(1)
     # 60 fps = how many ns in a frame?
@@ -258,7 +280,7 @@ def gravitypls():
 
     end = time.time_ns()
     total = end-start
-    print("Step calculation: ", total, totals)
+    #print("Step calculation: ", total, totals)
     return added
 
 def gravity_swap(direction):

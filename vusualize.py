@@ -1,8 +1,25 @@
+####
+# name: vusualize.py (lol name)
+
+# Game control:
+# ADDBLOCK: how often a block is added (same as FPS = 1/frame)
+# start.distance_check: how much to check in the world
+# start.maxlen: how big the world is
+
+# FPS: how many frames per second
+# HEIGHT: height of the window
+# WIDTH: width of the window
+
+####
+
+
+
 import sys
 import pygame
 import random
 import time
 import os
+import copy
 import threading
 from pygame.locals import *
 from pygame import mixer
@@ -10,11 +27,8 @@ from pygame import mixer
 import start
  
 pygame.init()
-
 mixer.init() 
-#mixer.music.load(r'explode.mp3')
-#mixer.music.set_volume(0.2)
-#mixer.music.play()
+FramePerSec = pygame.time.Clock()
 
 explode_sound = pygame.mixer.Sound("sound/explode.ogg")
 grav_swap = pygame.mixer.Sound("sound/grav_swap_1.ogg")
@@ -34,14 +48,11 @@ INNRHEIGHT = 600
 INNRWIDTH = 600 
 maxlen = start.maxlen
 
-ACC = 0.5
-FRIC = -0.12
 FPS = 60 
-ADDBLOCK = 15 
- 
-FramePerSec = pygame.time.Clock()
-
+ADDBLOCK = 20 
 boxsize = 50
+
+original_addblock = copy.deepcopy(ADDBLOCK)
  
 displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
 bg_img = pygame.image.load('imgs/background.png')
@@ -196,7 +207,7 @@ def run_game():
 
         if changed == True:
             clicks += 1
-            if clicks % 10 == 0:
+            if clicks % 13 == 0:
                 start.distance_check += 1
 
             if clicks % 3 == 0:
@@ -314,9 +325,10 @@ def show_menu(status, points):
         start.prev_gravity_swap = 0
         start.gravity_swaps = 0
         start.maxlen = start.original_maxlen
+        start.distance_check = start.original_distance_check
 
         maxlen = start.maxlen
-        ADDBLOCK = 15 
+        ADDBLOCK = original_addblock 
 
 
         start.world = []
