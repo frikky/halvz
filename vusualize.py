@@ -64,7 +64,6 @@ dark.fill((50, 50, 50, 0))
 bg_img.blit(dark, (0, 0), special_flags=pygame.BLEND_RGBA_SUB)
 #will subtract 50 from the RGB values of the surface called image.
 
-
 pygame.display.set_caption("Halvz")
 basepos = WIDTH-INNRWIDTH/2 
 
@@ -287,10 +286,6 @@ def run_game():
 
         displaysurface.blit(difficulty_text, (WIDTH/2-50, 110))
     
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
     
         for entity in all_sprites:
             displaysurface.blit(entity.surf, entity.rect)
